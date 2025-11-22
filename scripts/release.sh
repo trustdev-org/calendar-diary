@@ -52,8 +52,12 @@ echo ""
 # 3. 提交版本更改
 echo -e "${YELLOW}[3/6] 提交版本更改...${NC}"
 git add package.json
-git commit -m "chore: bump version to $VERSION"
-echo -e "${GREEN}✓ 更改已提交${NC}"
+if git diff --cached --quiet; then
+    echo -e "${GREEN}✓ 版本号未变更,跳过提交${NC}"
+else
+    git commit -m "chore: bump version to $VERSION"
+    echo -e "${GREEN}✓ 更改已提交${NC}"
+fi
 echo ""
 
 # 4. 创建标签
