@@ -58,6 +58,11 @@
       "dist-electron/**/*",
       "package.json"
     ],
+    "extraMetadata": {
+      "dependencies": {
+        "electron-updater": "^6.1.7"
+      }
+    },
     "publish": [
       {
         "provider": "github",
