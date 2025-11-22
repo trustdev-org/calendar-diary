@@ -264,21 +264,9 @@ calendar-diary/
 - **macOS**: `~/Library/Application Support/CalendarDiary/`
 - **Linux**: `~/.config/CalendarDiary/`
 
-### 自动构建和发布
+### 构建和发布
 
 项目配置了 GitHub Actions 自动构建流程，推送标签即可自动构建和发布。
-
-**使用发布脚本（推荐）：**
-
-```bash
-# macOS / Linux
-./scripts/release.sh 0.1.1
-
-# Windows
-scripts\release.bat 0.1.1
-```
-
-**手动发布：**
 
 ```bash
 # 1. 更新版本号（编辑 package.json）
@@ -298,8 +286,6 @@ git push origin v0.1.1
 - ✅ 自动创建 GitHub Release
 - ✅ 自动上传所有安装包和更新配置文件
 - ✅ 用户端自动检测和安装更新
-
-**详细配置说明**: 查看 [发布指南](docs/RELEASE.md)
 
 ## 🤝 贡献指南
 
