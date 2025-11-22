@@ -22,6 +22,7 @@
 
 CalendarDiary 是一款跨平台的桌面日历日记应用，采用现代化设计理念，为用户提供简洁直观的记录体验。
 
+
 ### ✨ 核心特色
 
 - **🎯 简洁设计** - 极简界面，专注于内容本身
@@ -31,6 +32,10 @@ CalendarDiary 是一款跨平台的桌面日历日记应用，采用现代化设
 - **💾 本地存储** - 数据完全本地化，保护隐私安全
 - **🔄 自动更新** - 内置更新检测，保持软件最新
 - **🌍 多语言支持** - 支持简中、繁中、英语、日语、韩语、俄语
+
+## Stars
+
+<img src="https://api.star-history.com/svg?repos=trustdev-org/calendar-diary&type=Date" width="500" />
 
 ## 🛠️ 技术栈
 
@@ -201,37 +206,6 @@ npm run electron:build:linux
 
 构建产物输出到 `release/` 目录。
 
-### 项目结构
-
-```
-calendar-diary/
-├── electron/              # Electron 主进程和预加载脚本
-│   ├── main.ts           # 主进程入口
-│   └── preload.ts        # 预加载脚本
-├── components/           # React 组件
-│   ├── CalendarHeader.tsx
-│   ├── DayCell.tsx
-│   ├── DayEditor.tsx
-│   ├── SettingsModal.tsx
-│   ├── AboutModal.tsx
-│   └── UpdateNotification.tsx
-├── services/             # 服务层
-│   └── storageService.ts
-├── utils/                # 工具函数
-│   ├── dateUtils.ts
-│   └── i18n.ts
-├── build/                # 构建资源
-│   ├── icon.icns         # macOS 图标
-│   ├── icon.ico          # Windows 图标
-│   └── icon.png          # Linux 图标
-├── dist/                 # Web 构建输出
-├── dist-electron/        # Electron 构建输出
-├── release/              # 最终打包输出
-├── App.tsx               # 应用主组件
-├── types.ts              # TypeScript 类型定义
-├── vite.config.ts        # Vite 配置
-└── package.json          # 项目配置
-```
 
 ### 技术架构
 
@@ -250,42 +224,6 @@ calendar-diary/
 - **macOS**: `~/Library/Application Support/CalendarDiary/`
 - **Linux**: `~/.config/CalendarDiary/`
 
-### 自动构建和发布
-
-项目配置了 GitHub Actions 自动构建流程，推送标签即可自动构建和发布。
-
-**使用发布脚本（推荐）：**
-
-```bash
-# macOS / Linux
-./scripts/release.sh 0.1.1
-
-# Windows
-scripts\release.bat 0.1.1
-```
-
-**手动发布：**
-
-```bash
-# 1. 更新版本号（编辑 package.json）
-# 2. 提交并推送标签
-git add package.json
-git commit -m "chore: bump version to 0.1.1"
-git tag v0.1.1
-git push origin main
-git push origin v0.1.1
-
-# 3. GitHub Actions 自动构建并发布
-# 访问 https://github.com/trustdev-org/calendar-diary/actions 查看进度
-```
-
-**自动构建特性：**
-- ✅ 同时构建 macOS、Windows、Linux 三个平台
-- ✅ 自动创建 GitHub Release
-- ✅ 自动上传所有安装包和更新配置文件
-- ✅ 用户端自动检测和安装更新
-
-**详细配置说明**: 查看 [发布指南](docs/RELEASE.md)
 
 ## 🤝 贡献指南
 
