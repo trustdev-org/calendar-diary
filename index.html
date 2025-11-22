@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CalendarDiary - 日历日记</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['"Playfair Display"', 'Georgia', 'serif'],
+              sans: ['"Inter"', 'system-ui', 'sans-serif'],
+              hand: ['"Comic Sans MS"', '"Chalkboard SE"', 'sans-serif'], // Fallback for handwriting style
+            },
+            colors: {
+              paper: '#fdfbf7',
+              'paper-dark': '#f0efe9',
+              'ink-red': '#e63946',
+              'ink-blue': '#1d3557',
+              'ink-black': '#2b2d42',
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      /* Custom scrollbar for a cleaner look */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d1d5db; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af; 
+      }
+      .spiral-holes {
+        background-image: radial-gradient(circle, #333 20%, transparent 25%);
+        background-size: 20px 20px;
+        background-position: 0 0;
+        background-repeat: repeat-x;
+        height: 20px;
+        opacity: 0.1;
+      }
+      
+      /* Electron Drag Regions */
+      .draggable {
+        -webkit-app-region: drag;
+      }
+      .non-draggable {
+        -webkit-app-region: no-drag;
+      }
+      
+      /* Base styles */
+      body {
+        background-color: #fdfbf7;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="overflow-hidden text-ink-black h-screen w-screen">
+    <div id="root" class="w-full h-full"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

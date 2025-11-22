@@ -1,0 +1,5 @@
+{
+  "name": "PaperPlan AI - Digital Calendar Diary",
+  "description": "A digital replica of a physical monthly planner/diary with Chinese lunar dates, sticker support, and Gemini AI integration for monthly planning and summarization.",
+  "requestFramePermissions": []
+}
