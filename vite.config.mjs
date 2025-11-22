@@ -27,12 +27,17 @@ export default defineConfig(({ mode }) => {
             vite: {
               build: {
                 outDir: 'dist-electron',
-                rollupOptions: {
-                  external: ['electron']
+                lib: {
+                  entry: 'electron/main.ts',
+                  formats: ['cjs'],
+                  fileName: () => 'main.cjs'
                 },
-                define: {
-                  'process.env.NODE_ENV': JSON.stringify(mode)
+                rollupOptions: {
+                  external: ['electron', 'electron-updater', 'path', 'fs/promises']
                 }
+              },
+              define: {
+                'process.env.NODE_ENV': JSON.stringify(mode)
               }
             }
           },
@@ -43,7 +48,15 @@ export default defineConfig(({ mode }) => {
             },
             vite: {
               build: {
-                outDir: 'dist-electron'
+                outDir: 'dist-electron',
+                lib: {
+                  entry: 'electron/preload.ts',
+                  formats: ['cjs'],
+                  fileName: () => 'preload.cjs'
+                },
+                rollupOptions: {
+                  external: ['electron']
+                }
               }
             }
           }

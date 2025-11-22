@@ -10,15 +10,15 @@
     "url": "https://github.com/trustdev-org/calendar-diary.git"
   },
   "homepage": "https://github.com/trustdev-org/calendar-diary",
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build && electron-builder",
     "preview": "vite preview",
-    "electron:build": "vite build && tsc -p tsconfig.electron.json && mv dist-electron/main.js dist-electron/main.cjs && mv dist-electron/preload.js dist-electron/preload.cjs && electron-builder",
-    "electron:build:mac": "vite build && tsc -p tsconfig.electron.json && mv dist-electron/main.js dist-electron/main.cjs && mv dist-electron/preload.js dist-electron/preload.cjs && electron-builder --mac",
-    "electron:build:win": "vite build && tsc -p tsconfig.electron.json && mv dist-electron/main.js dist-electron/main.cjs && mv dist-electron/preload.js dist-electron/preload.cjs && electron-builder --win",
-    "electron:build:linux": "vite build && tsc -p tsconfig.electron.json && mv dist-electron/main.js dist-electron/main.cjs && mv dist-electron/preload.js dist-electron/preload.cjs && electron-builder --linux"
+    "electron:build": "vite build && electron-builder",
+    "electron:build:mac": "vite build && electron-builder --mac",
+    "electron:build:win": "vite build && electron-builder --win",
+    "electron:build:linux": "vite build && electron-builder --linux"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
