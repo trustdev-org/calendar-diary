@@ -1,7 +1,7 @@
 {
   "name": "calendar-diary",
   "private": true,
-  "version": "0.1.0-beta",
+  "version": "0.1.0",
   "description": "一款简洁优雅的日历日记应用",
   "author": "TrustDev",
   "license": "CC-BY-NC-4.0",
