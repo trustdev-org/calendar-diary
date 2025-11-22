@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "description": "一款简洁优雅的日历日记应用",
-  "author": "TrustDev",
+  "author": {
+    "name": "TrustDev",
+    "email": "dev@trustdev.org"
+  },
   "license": "CC-BY-NC-4.0",
   "repository": {
     "type": "git",

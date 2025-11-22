@@ -78,7 +78,7 @@ app.whenReady().then(async () => {
     console.log('[AutoUpdater] Scheduling update check in 3 seconds...');
     setTimeout(() => {
       console.log('[AutoUpdater] Starting update check...');
-      autoUpdater.checkForUpdates().catch(err => {
+      autoUpdater.checkForUpdates().catch((err: Error) => {
         console.error('[AutoUpdater] Failed to check for updates:', err);
       });
     }, 3000);
