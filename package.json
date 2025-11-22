@@ -1,13 +1,9 @@
 {
   "name": "calendar-diary",
   "private": true,
-  "version": "0.1.1",
-  "type": "module",
+  "version": "0.1.0-beta",
   "description": "一款简洁优雅的日历日记应用",
-  "author": {
-    "name": "TrustDev",
-    "email": "dev@trustdev.org"
-  },
+  "author": "TrustDev",
   "license": "CC-BY-NC-4.0",
   "repository": {
     "type": "git",
@@ -58,11 +54,6 @@
       "dist-electron/**/*",
       "package.json"
     ],
-    "extraMetadata": {
-      "dependencies": {
-        "electron-updater": "^6.1.7"
-      }
-    },
     "publish": [
       {
         "provider": "github",
