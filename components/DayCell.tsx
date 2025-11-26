@@ -1,23 +1,26 @@
 
 import React, { useState } from 'react';
-import { format, getDate, isSameMonth, isSameDay, getLunarDate } from '../utils/dateUtils';
+import { format, getDate, isSameMonth, isSameDay, getLunarDate, getHoliday } from '../utils/dateUtils';
 import { DayData } from '../types';
 import { StickerPicker } from './StickerPicker';
+import { getCurrentLanguage } from '../utils/i18n';
 
 interface DayCellProps {
   day: Date;
   currentDate: Date;
   data?: DayData;
   onClick: () => void;
+  highlight?: boolean;
 }
 
-export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClick }) => {
+export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClick, highlight }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isToday = isSameDay(day, new Date());
   const isWeekend = day.getDay() === 0 || day.getDay() === 6;
   const lunar = getLunarDate(day);
+  const holiday = getHoliday(day, getCurrentLanguage());
   
   const stickers = data?.stickers || [];
   const events = data?.events || [];
@@ -28,8 +31,12 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
         relative flex flex-col border-r border-b border-stone-200 select-none
         ${!isCurrentMonth ? 'bg-stone-50/50 text-stone-300 cursor-default' : 'bg-white text-stone-800 cursor-pointer hover:bg-stone-50'}
         ${isToday ? 'ring-2 ring-inset ring-yellow-200 bg-yellow-50/30' : ''}
+        ${highlight ? 'ring-4 ring-blue-400 bg-blue-50 animate-pulse' : ''}
         transition-all duration-200 group overflow-hidden h-full min-h-0
       `}
+      style={{
+        animation: highlight ? 'pulse 0.5s ease-in-out 2' : undefined
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={isCurrentMonth ? onClick : undefined}
@@ -44,7 +51,12 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
             `}>
             {getDate(day)}
             </span>
-            <span className="text-[8px] text-stone-400 font-serif mt-0.5 transform scale-90 origin-left">{lunar}</span>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="text-[8px] text-stone-400 font-serif transform scale-90 origin-left">{lunar}</span>
+              {holiday && (
+                <span className="text-[8px] text-ink-red font-medium">{holiday}</span>
+              )}
+            </div>
         </div>
         
         {/* Decorative Stickers (Top Right) */}
