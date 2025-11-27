@@ -3,7 +3,10 @@
   "private": true,
   "version": "0.1.5-beta",
   "description": "一款简洁优雅的日历日记应用",
-  "author": "TrustDev",
+  "author": {
+    "name": "TrustDev",
+    "email": "admin@trustdev.org"
+  },
   "license": "CC-BY-NC-4.0",
   "repository": {
     "type": "git",
