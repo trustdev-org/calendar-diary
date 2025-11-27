@@ -54,6 +54,7 @@ const App: React.FC = () => {
     };
     
     loadData();
+    
   }, [isAuthenticated]);
 
   // 快捷键监听
@@ -153,7 +154,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full bg-white flex flex-col overflow-hidden relative">
+    <div className="w-full h-full min-h-0 bg-white flex flex-col overflow-hidden relative">
       
       {/* Authentication Modal */}
       {needsAuth && !isAuthenticated && (() => {
@@ -236,9 +237,9 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-paper relative">
+      <div className="flex-1 min-h-0 flex flex-col bg-paper relative">
         
-        <div className="relative z-10 flex flex-col h-full">
+        <div className="relative z-10 flex flex-col h-full min-h-0">
             <CalendarHeader 
                 currentDate={currentDate}
                 onPrevMonth={() => setCurrentDate(subMonths(currentDate, 1))}
@@ -248,7 +249,7 @@ const App: React.FC = () => {
                 onUpdatePlan={handlePlanUpdate}
             />
 
-            <div className="flex-1 flex flex-col p-4 pt-0 overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col p-4 pt-0 overflow-hidden">
                  {/* Week Header */}
                 <div className="grid grid-cols-7 border-b border-stone-300 mb-1 shrink-0">
                     {WEEK_DAYS.map((day, index) => (
@@ -259,20 +260,20 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Days Grid */}
-                <div className={`flex-1 grid grid-cols-7 gap-1 ${isSixWeeks ? 'grid-rows-6' : 'grid-rows-5'}`}>
+                <div className={`grid grid-cols-7 gap-1 min-h-0 h-full flex-1 ${isSixWeeks ? 'grid-rows-6' : 'grid-rows-5'}`}>
                     {days.map((day) => {
                         const dateKey = format(day, 'yyyy-MM-dd');
                         const shouldHighlight = highlightDate === dateKey;
                         
                         return (
-                          <DayCell 
+                            <DayCell 
                               key={day.toISOString()} 
                               day={day} 
                               currentDate={currentDate}
                               data={data[dateKey]}
                               onClick={() => setSelectedDay(day)}
                               highlight={shouldHighlight}
-                          />
+                            />
                         );
                     })}
                 </div>

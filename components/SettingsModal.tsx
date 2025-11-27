@@ -9,16 +9,18 @@ interface SettingsModalProps {
   onClose: () => void;
   onExport: () => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDisplaySettingsChange?: (mode: 'ellipsis' | 'scroll') => void;
 }
 
 type TabType = 'general' | 'security';
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport, onImport }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport, onImport, onDisplaySettingsChange }) => {
   const [dataPath, setDataPath] = useState('LocalStorage (Browser)');
   const [isElectron, setIsElectron] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(getCurrentLanguage());
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('general');
+  
   
   // Security settings
   const [securityEnabled, setSecurityEnabled] = useState(false);
@@ -109,6 +111,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
     };
     checkElectron();
     
+    
     // 加载安全设置
     const savedSecurity = localStorage.getItem('calendar-diary-security');
     if (savedSecurity) {
@@ -153,6 +156,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
       }
     }
   };
+
 
   const handleSaveSecurity = () => {
     // 当前选中的验证方式的验证
@@ -249,7 +253,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
         <div className="bg-[#ececec] px-4 py-2 border-b border-[#dcdcdc] flex justify-between items-center select-none">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-stone-600">{t('settings')}</span>
-            <span className="text-[10px] text-stone-400 font-mono">v0.1.3-beta</span>
+            <span className="text-[10px] text-stone-400 font-mono">v0.1.4-beta</span>
           </div>
           <button 
             onClick={onClose} 
@@ -358,6 +362,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
                     ))}
                 </div>
             </section>
+
               </>
             )}
 
@@ -638,7 +643,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
              {t('cancel')}
            </button>
            <button 
-             onClick={activeTab === 'security' ? handleSaveSecurity : onClose}
+             onClick={() => {
+               if (activeTab === 'security') {
+                 handleSaveSecurity();
+               } else if (activeTab === 'general') {
+                 onClose();
+               }
+             }}
              className="bg-stone-800 hover:bg-stone-900 text-white px-6 py-1.5 rounded text-sm font-medium transition-colors shadow-sm"
            >
              {t('saveChanges')}
