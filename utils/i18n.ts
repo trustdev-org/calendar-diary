@@ -162,7 +162,12 @@ export const translations = {
     viewRelease: "查看发布",
     updateCheckFailed: "检查更新失败",
     checkLatestVersion: "检查最新版本",
-    openReleasePage: "打开软件发布页"
+    openReleasePage: "打开软件发布页",
+    // 窗口按钮提示
+    about: "关于",
+    minimize: "最小化",
+    maximize: "最大化",
+    restore: "还原"
   },
   'zh-TW': {
     appTitle: "日曆日記",
@@ -326,7 +331,12 @@ export const translations = {
     viewRelease: "查看發佈",
     updateCheckFailed: "檢查更新失敗",
     checkLatestVersion: "檢查最新版本",
-    openReleasePage: "打開軟體發佈頁"
+    openReleasePage: "打開軟體發佈頁",
+    // 窗口按鈕提示
+    about: "關於",
+    minimize: "最小化",
+    maximize: "最大化",
+    restore: "還原"
   },
   'en': {
     appTitle: "Calendar Diary",
@@ -490,7 +500,12 @@ export const translations = {
     viewRelease: "View Release",
     updateCheckFailed: "Update check failed",
     checkLatestVersion: "Check Latest Version",
-    openReleasePage: "Open Release Page"
+    openReleasePage: "Open Release Page",
+    // Window button tooltips
+    about: "About",
+    minimize: "Minimize",
+    maximize: "Maximize",
+    restore: "Restore"
   },
   'ja': {
     appTitle: "カレンダー日記",
@@ -654,7 +669,12 @@ export const translations = {
     viewRelease: "リリースを見る",
     updateCheckFailed: "アップデート確認に失敗",
     checkLatestVersion: "最新バージョンを確認",
-    openReleasePage: "リリースページを開く"
+    openReleasePage: "リリースページを開く",
+    // ウィンドウボタンツールチップ
+    about: "このアプリについて",
+    minimize: "最小化",
+    maximize: "最大化",
+    restore: "元に戻す"
   },
   'ko': {
     appTitle: "캘린더 일기",
@@ -818,7 +838,12 @@ export const translations = {
     viewRelease: "릴리스 보기",
     updateCheckFailed: "업데이트 확인 실패",
     checkLatestVersion: "최신 버전 확인",
-    openReleasePage: "릴리스 페이지 열기"
+    openReleasePage: "릴리스 페이지 열기",
+    // 창 버튼 툴팁
+    about: "정보",
+    minimize: "최소화",
+    maximize: "최대화",
+    restore: "복원"
   },
   'ru': {
     appTitle: "Календарь-дневник",
@@ -982,7 +1007,12 @@ export const translations = {
     viewRelease: "Посмотреть релиз",
     updateCheckFailed: "Ошибка проверки обновлений",
     checkLatestVersion: "Проверить последнюю версию",
-    openReleasePage: "Открыть страницу релизов"
+    openReleasePage: "Открыть страницу релизов",
+    // Подсказки кнопок окна
+    about: "О программе",
+    minimize: "Свернуть",
+    maximize: "Развернуть",
+    restore: "Восстановить"
   }
 };
 

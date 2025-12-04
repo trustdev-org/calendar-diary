@@ -258,7 +258,7 @@ const App: React.FC = () => {
            <button 
              onClick={() => setShowAbout(true)} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
-             title="About"
+             title={t('about')}
            >
              <Github size={16} />
            </button>
@@ -268,7 +268,7 @@ const App: React.FC = () => {
                setShowSettings(true);
              }} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
-             title="Settings"
+             title={t('settings')}
            >
              <Settings size={16} />
            </button>
@@ -276,21 +276,21 @@ const App: React.FC = () => {
              <button 
                onClick={() => window.electronAPI?.window.minimize()} 
                className="p-1.5 text-stone-500 hover:bg-yellow-100 hover:text-yellow-700 rounded-md transition-all"
-               title="Minimize"
+               title={t('minimize')}
              >
                <Minus size={16} />
              </button>
              <button 
                onClick={() => window.electronAPI?.window.maximize()} 
                className="p-1.5 text-stone-500 hover:bg-green-100 hover:text-green-700 rounded-md transition-all"
-               title="Maximize/Restore"
+               title={t('maximize')}
              >
                <Square size={14} />
              </button>
              <button 
                onClick={() => window.electronAPI?.window.close()} 
                className="p-1.5 text-stone-500 hover:bg-red-100 hover:text-red-600 rounded-md transition-all"
-               title="Close"
+               title={t('close')}
              >
                <X size={16} />
              </button>
