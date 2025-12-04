@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { format, getLunarFullDate } from '../utils/dateUtils';
 import { DayData, DayEvent, STICKERS } from '../types';
 import { X, Plus, Trash2, Save } from 'lucide-react';
@@ -19,6 +19,15 @@ const EVENT_EMOJIS = [
   '❤️', '🎉', '🚀', '🌟', '👑', '🏆', '🎓', '💯',
   '⏰', '📅', '💬', '👀', '🧠', '✨', '🌈', '🌺'
 ];
+
+// 自动调整 textarea 高度的工具函数
+const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
+  textarea.style.height = 'auto';
+  const newHeight = Math.min(textarea.scrollHeight, 150);
+  textarea.style.height = newHeight + 'px';
+  // 当内容超过最大高度时显示滚动条
+  textarea.style.overflowY = textarea.scrollHeight > 150 ? 'auto' : 'hidden';
+};
 
 export const DayEditor: React.FC<DayEditorProps> = ({ date, initialData, onClose, onSave }) => {
   const [events, setEvents] = useState<DayEvent[]>(() => initialData?.events || []);
@@ -127,17 +136,20 @@ export const DayEditor: React.FC<DayEditorProps> = ({ date, initialData, onClose
                 <div key={event.id} className="flex items-start gap-2 group">
                   <span className="text-stone-400 font-mono text-xs w-4 pt-1.5">{index + 1}.</span>
                   <textarea
+                    ref={(el) => {
+                      // 初始渲染时自动调整高度
+                      if (el && event.rawText) {
+                        requestAnimationFrame(() => adjustTextareaHeight(el));
+                      }
+                    }}
                     value={event.rawText}
                     onChange={(e) => handleEventChange(event.id, e.target.value)}
                     placeholder={t('writeTask')}
-                    className="auto-resize-textarea flex-1 bg-stone-50 border border-transparent focus:border-stone-300 focus:bg-white rounded px-2 py-1.5 text-sm outline-none transition-all resize-none min-h-[36px] max-h-[150px] overflow-y-auto"
+                    className="flex-1 bg-stone-50 border border-transparent focus:border-stone-300 focus:bg-white rounded px-2 py-1.5 text-sm outline-none transition-all resize-none min-h-[36px] max-h-[150px] overflow-hidden leading-relaxed"
                     autoFocus={index === events.length - 1 && event.rawText === ''}
                     rows={1}
                     onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      const newHeight = Math.min(target.scrollHeight, 150);
-                      target.style.height = newHeight + 'px';
+                      adjustTextareaHeight(e.target as HTMLTextAreaElement);
                     }}
                   />
                   <div className="relative">

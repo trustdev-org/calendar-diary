@@ -150,6 +150,7 @@ export const translations = {
     cloudDeleteConfirmTitle: "确认删除",
     cloudDeleteConfirmMessage: "确定要删除该云端备份吗？此操作不可恢复。",
     cloudDeleteConfirm: "确认删除",
+    cloudSyncNotConfigured: "尚未配置云同步，请先在设置中配置 WebDAV 服务器信息。",
     // 检查更新
     checkUpdate: "检查更新",
     currentVersion: "当前版本",
@@ -319,6 +320,7 @@ export const translations = {
     cloudDeleteConfirmTitle: "確認刪除",
     cloudDeleteConfirmMessage: "確定要刪除該雲端備份嗎？此操作不可恢復。",
     cloudDeleteConfirm: "確認刪除",
+    cloudSyncNotConfigured: "尚未配置雲同步，請先在設定中配置 WebDAV 伺服器資訊。",
     // 檢查更新
     checkUpdate: "檢查更新",
     currentVersion: "目前版本",
@@ -488,6 +490,7 @@ export const translations = {
     cloudDeleteConfirmTitle: "Confirm Delete",
     cloudDeleteConfirmMessage: "Delete this cloud backup? This cannot be undone.",
     cloudDeleteConfirm: "Confirm Delete",
+    cloudSyncNotConfigured: "Cloud sync is not configured. Please configure WebDAV server in settings first.",
     // Check Update
     checkUpdate: "Check for Updates",
     currentVersion: "Current Version",
@@ -657,6 +660,7 @@ export const translations = {
     cloudDeleteConfirmTitle: "削除の確認",
     cloudDeleteConfirmMessage: "このクラウドバックアップを削除しますか？この操作は取り消せません。",
     cloudDeleteConfirm: "削除を確認",
+    cloudSyncNotConfigured: "クラウド同期が設定されていません。先に設定で WebDAV サーバーを設定してください。",
     // アップデート確認
     checkUpdate: "アップデート確認",
     currentVersion: "現在のバージョン",
@@ -826,6 +830,7 @@ export const translations = {
     cloudDeleteConfirmTitle: "삭제 확인",
     cloudDeleteConfirmMessage: "이 클라우드 백업을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
     cloudDeleteConfirm: "삭제 확인",
+    cloudSyncNotConfigured: "클라우드 동기화가 설정되지 않았습니다. 먼저 설정에서 WebDAV 서버를 구성해주세요.",
     // 업데이트 확인
     checkUpdate: "업데이트 확인",
     currentVersion: "현재 버전",
@@ -995,6 +1000,7 @@ export const translations = {
     cloudDeleteConfirmTitle: "Подтвердите удаление",
     cloudDeleteConfirmMessage: "Удалить этот облачный бэкап? Это действие необратимо.",
     cloudDeleteConfirm: "Подтвердить удаление",
+    cloudSyncNotConfigured: "Облачная синхронизация не настроена. Пожалуйста, сначала настройте WebDAV сервер в настройках.",
     // Проверка обновлений
     checkUpdate: "Проверка обновлений",
     currentVersion: "Текущая версия",
