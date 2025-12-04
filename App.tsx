@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
 import { format, addMonths, subMonths, getCalendarDays } from './utils/dateUtils';
 import { CalendarHeader } from './components/CalendarHeader';
 import { DayCell } from './components/DayCell';
@@ -79,52 +79,60 @@ const App: React.FC = () => {
   }, []);
 
   // --- Handlers ---
-  const saveData = async (newData: Record<string, DayData>) => {
+  const saveData = useCallback(async (newData: Record<string, DayData>) => {
     setData(newData);
     await StorageService.setData(newData);
     // 更新数据修改时间戳，用于云同步比较
     localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
-  };
+  }, []);
 
-  const savePlans = async (newPlans: Record<string, string[]>) => {
+  const savePlans = useCallback(async (newPlans: Record<string, string[]>) => {
     setMonthlyPlans(newPlans);
     await StorageService.setPlans(newPlans);
     // 更新数据修改时间戳，用于云同步比较
     localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
-  };
+  }, []);
 
-  const handleDaySave = (dateKey: string, events: DayEvent[], stickers: string[]) => {
-    const newData = {
-      ...data,
-      [dateKey]: { date: dateKey, events, stickers }
-    };
-    saveData(newData);
-  };
-
-  const handlePlanUpdate = (index: number, value: string) => {
-    const monthKey = format(currentDate, 'yyyy-MM');
-    const currentMonthPlan = monthlyPlans[monthKey] || ['', '', ''];
-    const newPlan = [...currentMonthPlan];
-    newPlan[index] = value;
-    
-    savePlans({
-      ...monthlyPlans,
-      [monthKey]: newPlan
+  const handleDaySave = useCallback((dateKey: string, events: DayEvent[], stickers: string[]) => {
+    setData(prevData => {
+      const newData = {
+        ...prevData,
+        [dateKey]: { date: dateKey, events, stickers }
+      };
+      StorageService.setData(newData);
+      localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
+      return newData;
     });
-  };
+  }, []);
 
-  const openPreview = (day: Date) => {
+  const handlePlanUpdate = useCallback((index: number, value: string) => {
+    const monthKey = format(currentDate, 'yyyy-MM');
+    setMonthlyPlans(prevPlans => {
+      const currentMonthPlan = prevPlans[monthKey] || ['', '', ''];
+      const newPlan = [...currentMonthPlan];
+      newPlan[index] = value;
+      const newPlans = {
+        ...prevPlans,
+        [monthKey]: newPlan
+      };
+      StorageService.setPlans(newPlans);
+      localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
+      return newPlans;
+    });
+  }, [currentDate]);
+
+  const openPreview = useCallback((day: Date) => {
     const id = format(day, 'yyyy-MM-dd');
     setPreviewWindows((prev) => {
       const exists = prev.some(p => p.id === id);
       if (exists) return prev;
       return [...prev, { id, date: day }];
     });
-  };
+  }, []);
 
-  const closePreview = (id: string) => {
+  const closePreview = useCallback((id: string) => {
     setPreviewWindows(prev => prev.filter(p => p.id !== id));
-  };
+  }, []);
 
   const handleExport = () => {
     const exportData = {
@@ -160,22 +168,27 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
-  // --- Render Data ---
-  const days = getCalendarDays(currentDate);
-  const monthKey = format(currentDate, 'yyyy-MM');
-  const currentPlan = monthlyPlans[monthKey] || ['', '', ''];
+  // --- Render Data (useMemo 优化) ---
+  const days = useMemo(() => getCalendarDays(currentDate), [currentDate]);
+  const monthKey = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
+  const currentPlan = useMemo(() => monthlyPlans[monthKey] || ['', '', ''], [monthlyPlans, monthKey]);
   
   // Determine if we need 6 rows
   const isSixWeeks = days.length > 35;
 
   // 获取安全设置
-  const getSecuritySettings = () => {
+  const getSecuritySettings = useCallback(() => {
     const securitySettings = localStorage.getItem('calendar-diary-security');
     if (securitySettings) {
       return JSON.parse(securitySettings);
     }
     return null;
-  };
+  }, []);
+
+  // 导航回调
+  const handlePrevMonth = useCallback(() => setCurrentDate(d => subMonths(d, 1)), []);
+  const handleNextMonth = useCallback(() => setCurrentDate(d => addMonths(d, 1)), []);
+  const handleDateSelect = useCallback((date: Date) => setCurrentDate(date), []);
 
   return (
     <div className="w-full h-full min-h-0 bg-white flex flex-col overflow-hidden relative">
@@ -291,9 +304,9 @@ const App: React.FC = () => {
         <div className="relative z-10 flex flex-col h-full min-h-0">
             <CalendarHeader 
                 currentDate={currentDate}
-                onPrevMonth={() => setCurrentDate(subMonths(currentDate, 1))}
-                onNextMonth={() => setCurrentDate(addMonths(currentDate, 1))}
-                onDateSelect={(date) => setCurrentDate(date)}
+                onPrevMonth={handlePrevMonth}
+                onNextMonth={handleNextMonth}
+                onDateSelect={handleDateSelect}
                 monthlyPlan={currentPlan}
                 onUpdatePlan={handlePlanUpdate}
             />

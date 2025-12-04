@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { format } from '../utils/dateUtils';
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { t, getMonthName } from '../utils/i18n';
@@ -13,7 +13,7 @@ interface CalendarHeaderProps {
   onDateSelect: (date: Date) => void;
 }
 
-export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
+const CalendarHeaderComponent: React.FC<CalendarHeaderProps> = ({
   currentDate,
   onPrevMonth,
   onNextMonth,
@@ -24,18 +24,22 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [selectorYear, setSelectorYear] = useState(currentDate.getFullYear());
 
-  const toggleSelector = () => {
-    if (!isSelectorOpen) {
-        setSelectorYear(currentDate.getFullYear());
-    }
-    setIsSelectorOpen(!isSelectorOpen);
-  };
+  const toggleSelector = useCallback(() => {
+    setIsSelectorOpen(prev => {
+      if (!prev) setSelectorYear(currentDate.getFullYear());
+      return !prev;
+    });
+  }, [currentDate]);
 
-  const handleMonthSelect = (monthIndex: number) => {
+  const handleMonthSelect = useCallback((monthIndex: number) => {
     const newDate = new Date(selectorYear, monthIndex, 1);
     onDateSelect(newDate);
     setIsSelectorOpen(false);
-  };
+  }, [selectorYear, onDateSelect]);
+
+  const closeSelector = useCallback(() => setIsSelectorOpen(false), []);
+  const prevYear = useCallback(() => setSelectorYear(y => y - 1), []);
+  const nextYear = useCallback(() => setSelectorYear(y => y + 1), []);
 
   const today = new Date();
 
@@ -74,15 +78,15 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             {/* Date Selector Overlay */}
             {isSelectorOpen && (
                 <>
-                    <div className="fixed inset-0 z-30 cursor-default" onClick={() => setIsSelectorOpen(false)}></div>
+                    <div className="fixed inset-0 z-30 cursor-default" onClick={closeSelector}></div>
                     <div className="absolute top-full left-0 mt-4 z-40 bg-white/95 backdrop-blur-sm border border-stone-200 shadow-2xl rounded-xl p-4 w-[320px] animate-in fade-in zoom-in-95 slide-in-from-top-2 origin-top-left">
                         {/* Year Navigation */}
                         <div className="flex justify-between items-center mb-4 border-b border-stone-100 pb-2">
-                            <button onClick={() => setSelectorYear(y => y - 1)} className="p-1 hover:bg-stone-100 rounded-lg text-stone-500 transition-colors" title="Previous year">
+                            <button onClick={prevYear} className="p-1 hover:bg-stone-100 rounded-lg text-stone-500 transition-colors" title="Previous year">
                                 <ChevronLeft size={20} />
                             </button>
                             <span className="font-serif font-bold text-xl text-ink-black">{selectorYear}</span>
-                            <button onClick={() => setSelectorYear(y => y + 1)} className="p-1 hover:bg-stone-100 rounded-lg text-stone-500 transition-colors" title="Next year">
+                            <button onClick={nextYear} className="p-1 hover:bg-stone-100 rounded-lg text-stone-500 transition-colors" title="Next year">
                                 <ChevronRight size={20} />
                             </button>
                         </div>
@@ -145,4 +149,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     </div>
   );
 };
+
+// 使用 memo 包装，避免不必要的重渲染
+export const CalendarHeader = memo(CalendarHeaderComponent);
     

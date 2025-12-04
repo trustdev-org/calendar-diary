@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { X, RefreshCw, ExternalLink, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { t } from '../utils/i18n';
 import { getAppVersion } from '../utils/version';
@@ -17,67 +17,61 @@ interface ReleaseInfo {
   published_at: string;
 }
 
+// 比较版本号（移到组件外部避免重复创建）
+const compareVersions = (current: string, latest: string): number => {
+  const cleanVersion = (v: string) => v.replace(/-.*$/, '');
+  const c = cleanVersion(current).split('.').map(Number);
+  const l = cleanVersion(latest).split('.').map(Number);
+  
+  for (let i = 0; i < Math.max(c.length, l.length); i++) {
+    const cv = c[i] || 0;
+    const lv = l[i] || 0;
+    if (cv < lv) return -1;
+    if (cv > lv) return 1;
+  }
+  return 0;
+};
+
+// 打开外部链接的通用函数
+const openExternalUrl = (url: string) => {
+  if (window.electronAPI?.shell?.openExternal) {
+    window.electronAPI.shell.openExternal(url);
+  } else {
+    window.open(url, '_blank');
+  }
+};
+
 export const UpdateModal: React.FC<UpdateModalProps> = ({ onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string>('');
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
   const [status, setStatus] = useState<UpdateStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // 入场动画
-  React.useEffect(() => {
-    requestAnimationFrame(() => {
-      setIsVisible(true);
-    });
+  // 入场动画 + 获取版本号（合并 useEffect）
+  useEffect(() => {
+    requestAnimationFrame(() => setIsVisible(true));
+    getAppVersion().then(setCurrentVersion);
   }, []);
 
   // 关闭动画
-  const handleClose = () => {
-    setIsClosing(true);
+  const handleClose = useCallback(() => {
     setIsVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 200);
-  };
-
-  // 获取当前版本
-  React.useEffect(() => {
-    getAppVersion().then(v => setCurrentVersion(v));
-  }, []);
-
-  // 比较版本号
-  const compareVersions = (current: string, latest: string): number => {
-    // 移除 -beta, -alpha 等后缀进行比较
-    const cleanVersion = (v: string) => v.replace(/-.*$/, '');
-    const c = cleanVersion(current).split('.').map(Number);
-    const l = cleanVersion(latest).split('.').map(Number);
-    
-    for (let i = 0; i < Math.max(c.length, l.length); i++) {
-      const cv = c[i] || 0;
-      const lv = l[i] || 0;
-      if (cv < lv) return -1;
-      if (cv > lv) return 1;
-    }
-    return 0;
-  };
+    setTimeout(onClose, 200);
+  }, [onClose]);
 
   // 检查更新
-  const checkForUpdates = async () => {
+  const checkForUpdates = useCallback(async () => {
     setStatus('checking');
     setErrorMessage('');
     
     try {
       const response = await fetch('https://api.github.com/repos/trustdev-org/calendar-diary/releases/latest', {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json'
-        }
+        headers: { 'Accept': 'application/vnd.github.v3+json' }
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
       const data = await response.json();
       const latestVer = data.tag_name?.replace(/^v/, '') || data.name;
@@ -91,56 +85,48 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ onClose }) => {
         published_at: data.published_at
       });
       
-      // 比较版本
-      if (compareVersions(currentVersion, latestVer) < 0) {
-        setStatus('available');
-      } else {
-        setStatus('latest');
-      }
+      setStatus(compareVersions(currentVersion, latestVer) < 0 ? 'available' : 'latest');
     } catch (error: any) {
       setStatus('error');
       setErrorMessage(error.message || t('updateCheckFailed'));
     }
-  };
+  }, [currentVersion]);
 
   // 打开发布页
-  const openReleasePage = () => {
-    const url = 'https://diary.trustdev.org/';
-    if (window.electronAPI?.shell?.openExternal) {
-      window.electronAPI.shell.openExternal(url);
-    } else {
-      window.open(url, '_blank');
-    }
-  };
+  const openReleasePage = useCallback(() => {
+    openExternalUrl('https://diary.trustdev.org/');
+  }, []);
 
   // 打开 GitHub Release 页面
-  const openGitHubRelease = () => {
-    if (releaseInfo?.html_url) {
-      if (window.electronAPI?.shell?.openExternal) {
-        window.electronAPI.shell.openExternal(releaseInfo.html_url);
-      } else {
-        window.open(releaseInfo.html_url, '_blank');
-      }
-    }
-  };
+  const openGitHubRelease = useCallback(() => {
+    if (releaseInfo?.html_url) openExternalUrl(releaseInfo.html_url);
+  }, [releaseInfo?.html_url]);
+
+  // 背景点击处理
+  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) handleClose();
+  }, [handleClose]);
+
+  // 动画样式
+  const backdropStyle = useMemo(() => ({
+    backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0)',
+    opacity: isVisible ? 1 : 0
+  }), [isVisible]);
+
+  const modalStyle = useMemo(() => ({
+    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
+    opacity: isVisible ? 1 : 0
+  }), [isVisible]);
 
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm transition-all duration-200"
-      style={{
-        backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0)',
-        opacity: isVisible ? 1 : 0
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleClose();
-      }}
+      style={backdropStyle}
+      onClick={handleBackdropClick}
     >
       <div 
         className="bg-white w-[400px] rounded-lg shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ease-out"
-        style={{
-          transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
-          opacity: isVisible ? 1 : 0
-        }}
+        style={modalStyle}
       >
         {/* Header */}
         <div className="bg-[#ececec] px-4 py-2 border-b border-[#dcdcdc] flex justify-between items-center select-none">
