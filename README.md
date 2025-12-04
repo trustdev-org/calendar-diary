@@ -1,6 +1,6 @@
 <div align="center">
 
-**简体中文** | [English](README_EN.md) | [繁體中文](README_TW.md) | [日本語](README_JA.md)
+**简体中文** | [English](README_EN.md) | [繁體中文](README_TW.md) | [日本語](README_JA.md) | [한국어](README_KO.md) | [Русский](README_RU.md)
 
 # 📅 CalendarDiary - 日历日记
 
