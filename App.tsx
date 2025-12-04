@@ -231,7 +231,8 @@ const App: React.FC = () => {
                if (config) {
                  setShowCloudSync(true);
                } else {
-                 // 未配置 WebDAV，跳转到设置
+                 // 未配置 WebDAV，先弹出提示再打开设置
+                 alert(t('cloudSyncNotConfigured'));
                  setSettingsDefaultTab('webdav');
                  setShowSettings(true);
                }
