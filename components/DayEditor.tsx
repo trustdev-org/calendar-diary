@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { format, getLunarFullDate } from '../utils/dateUtils';
 import { DayData, DayEvent, STICKERS } from '../types';
 import { X, Plus, Trash2, Save } from 'lucide-react';
@@ -12,100 +12,102 @@ interface DayEditorProps {
   onSave: (date: string, events: DayEvent[], stickers: string[]) => void;
 }
 
+// Emoji 列表移到组件外，避免每次渲染重建
+const EVENT_EMOJIS = [
+  '📝', '✅', '⭐', '🎯', '💡', '📌', '🔥', '⚡', 
+  '🎨', '📚', '💼', '🏃', '🎵', '🍔', '☕', '👍',
+  '❤️', '🎉', '🚀', '🌟', '👑', '🏆', '🎓', '💯',
+  '⏰', '📅', '💬', '👀', '🧠', '✨', '🌈', '🌺'
+];
+
 export const DayEditor: React.FC<DayEditorProps> = ({ date, initialData, onClose, onSave }) => {
-  const [events, setEvents] = useState<DayEvent[]>(initialData?.events || []);
-  const [stickers, setStickers] = useState<string[]>(initialData?.stickers || []);
+  const [events, setEvents] = useState<DayEvent[]>(() => initialData?.events || []);
+  const [stickers, setStickers] = useState<string[]>(() => initialData?.stickers || []);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState<string | null>(null);
   const [emojiPickerPosition, setEmojiPickerPosition] = useState({ top: 0, left: 0 });
   const [isVisible, setIsVisible] = useState(false);
 
+  // 入场动画
   useEffect(() => {
-    setIsVisible(true);
+    requestAnimationFrame(() => setIsVisible(true));
   }, []);
 
+  // 初始化空事件
   useEffect(() => {
-    // Add empty line if none exist
     if (events.length === 0) {
-      handleAddEvent();
+      setEvents([{ id: Date.now().toString(), rawText: '', summary: '', emoji: '📝' }]);
     }
   }, []);
 
-  // Auto-resize all textareas when events change
-  useEffect(() => {
-    const textareas = document.querySelectorAll<HTMLTextAreaElement>('.auto-resize-textarea');
-    textareas.forEach(textarea => {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
-    });
-  }, [events]);
+  const handleAddEvent = useCallback(() => {
+    setEvents(prev => [...prev, { id: Date.now().toString(), rawText: '', summary: '', emoji: '📝' }]);
+  }, []);
 
-  const handleAddEvent = () => {
-    setEvents([...events, { id: Date.now().toString(), rawText: '', summary: '', emoji: '📝' }]);
-  };
+  const handleEventChange = useCallback((id: string, text: string) => {
+    setEvents(prev => prev.map(e => e.id === id ? { ...e, rawText: text, summary: text } : e));
+  }, []);
 
-  const handleEventChange = (id: string, text: string) => {
-    setEvents(events.map(e => e.id === id ? { ...e, rawText: text, summary: text } : e));
-  };
+  const handleDeleteEvent = useCallback((id: string) => {
+    setEvents(prev => prev.filter(e => e.id !== id));
+  }, []);
 
-  const handleDeleteEvent = (id: string) => {
-    setEvents(events.filter(e => e.id !== id));
-  };
-
-  const EVENT_EMOJIS = [
-    '📝', '✅', '⭐', '🎯', '💡', '📌', '🔥', '⚡', 
-    '🎨', '📚', '💼', '🏃', '🎵', '🍔', '☕', '👍',
-    '❤️', '🎉', '🚀', '🌟', '👑', '🏆', '🎓', '💯',
-    '⏰', '📅', '💬', '👀', '🧠', '✨', '🌈', '🌺'
-  ];
-  
-  const handleEmojiButtonClick = (id: string, event: React.MouseEvent) => {
+  const handleEmojiButtonClick = useCallback((id: string, event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setEmojiPickerPosition({
       top: rect.bottom + 5,
       left: rect.left - 80
     });
-    setEmojiPickerOpen(emojiPickerOpen === id ? null : id);
-  };
+    setEmojiPickerOpen(prev => prev === id ? null : id);
+  }, []);
   
-  const handleSelectEmoji = (id: string, emoji: string) => {
-    setEvents(events.map(e => e.id === id ? { ...e, emoji } : e));
+  const handleSelectEmoji = useCallback((id: string, emoji: string) => {
+    setEvents(prev => prev.map(e => e.id === id ? { ...e, emoji } : e));
     setEmojiPickerOpen(null);
-  };
+  }, []);
 
-  const handleSave = () => {
+  const closeEmojiPicker = useCallback(() => setEmojiPickerOpen(null), []);
+
+  const handleSave = useCallback(() => {
     const cleanEvents = events.filter(e => e.rawText.trim() !== '');
     onSave(format(date, 'yyyy-MM-dd'), cleanEvents, stickers);
     onClose();
-  };
+  }, [events, stickers, date, onSave, onClose]);
 
-  const toggleSticker = (emoji: string) => {
-    if (stickers.includes(emoji)) {
-      setStickers(stickers.filter(s => s !== emoji));
-    } else {
-      setStickers([...stickers, emoji]);
-    }
-  };
+  const toggleSticker = useCallback((emoji: string) => {
+    setStickers(prev => 
+      prev.includes(emoji) ? prev.filter(s => s !== emoji) : [...prev, emoji]
+    );
+  }, []);
+
+  // 缓存日期格式化
+  const dateFormatted = useMemo(() => format(date, 'yyyy/MM/dd'), [date]);
+  const lunarDate = useMemo(() => getLunarFullDate(date), [date]);
+
+  // 动画样式
+  const backdropStyle = useMemo(() => ({
+    backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0)',
+    opacity: isVisible ? 1 : 0
+  }), [isVisible]);
+
+  const modalStyle = useMemo(() => ({
+    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
+    opacity: isVisible ? 1 : 0
+  }), [isVisible]);
 
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm transition-all duration-200"
-      style={{
-        backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0)',
-        opacity: isVisible ? 1 : 0
-      }}
+      style={backdropStyle}
     >
       <div 
         className="bg-white w-[480px] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[80vh] transition-all duration-200 ease-out"
-        style={{
-          transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
-          opacity: isVisible ? 1 : 0
-        }}
+        style={modalStyle}
       >
         {/* Header */}
         <div className="bg-stone-100 px-4 py-3 border-b border-stone-200 flex justify-between items-center">
           <div>
-             <h2 className="font-serif font-bold text-xl text-ink-black">{format(date, 'yyyy/MM/dd')}</h2>
-             <p className="text-xs text-stone-500 uppercase tracking-wide">{getLunarFullDate(date)}</p>
+             <h2 className="font-serif font-bold text-xl text-ink-black">{dateFormatted}</h2>
+             <p className="text-xs text-stone-500 uppercase tracking-wide">{lunarDate}</p>
           </div>
           <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors" title="Close">
             <X size={20} />
@@ -209,16 +211,13 @@ export const DayEditor: React.FC<DayEditorProps> = ({ date, initialData, onClose
         <>
           <div 
             className="fixed inset-0 z-50" 
-            onClick={() => setEmojiPickerOpen(null)}
+            onClick={closeEmojiPicker}
           />
           <div 
-            className="fixed z-50 bg-white rounded-lg shadow-2xl border border-stone-200 p-2 transition-all duration-200 ease-out"
+            className="fixed z-50 bg-white rounded-lg shadow-2xl border border-stone-200 p-2 w-[200px]"
             style={{
               top: `${emojiPickerPosition.top}px`,
-              left: `${emojiPickerPosition.left}px`,
-              width: '200px',
-              transform: 'translateY(0) scale(1)',
-              opacity: 1
+              left: `${emojiPickerPosition.left}px`
             }}
           >
             <div className="grid grid-cols-6 gap-1">

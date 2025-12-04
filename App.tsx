@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
 import { format, addMonths, subMonths, getCalendarDays } from './utils/dateUtils';
 import { CalendarHeader } from './components/CalendarHeader';
 import { DayCell } from './components/DayCell';
@@ -6,12 +6,14 @@ import { DayEditor } from './components/DayEditor';
 import { DayPreview } from './components/DayPreview';
 const SettingsModal = React.lazy(() => import('./components/SettingsModal').then(m => ({ default: m.SettingsModal })));
 const AboutModal = React.lazy(() => import('./components/AboutModal').then(m => ({ default: m.AboutModal })));
-const UpdateNotification = React.lazy(() => import('./components/UpdateNotification').then(m => ({ default: m.UpdateNotification })));
 const AuthModal = React.lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 const SearchModal = React.lazy(() => import('./components/SearchModal').then(m => ({ default: m.SearchModal })));
+const CloudSyncModal = React.lazy(() => import('./components/CloudSyncModal').then(m => ({ default: m.CloudSyncModal })));
+const UpdateModal = React.lazy(() => import('./components/UpdateModal').then(m => ({ default: m.UpdateModal })));
 import { DayData, WEEK_DAYS, DayEvent } from './types';
 import { StorageService } from './services/storageService';
-import { Settings, Minus, Square, X, Github, Search } from 'lucide-react';
+import { WebDAVService } from './services/webdavService';
+import { Settings, Minus, Square, X, Github, Search, Cloud, RefreshCw } from 'lucide-react';
 import { t, getWeekDay } from './utils/i18n';
 
 const App: React.FC = () => {
@@ -25,6 +27,9 @@ const App: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCloudSync, setShowCloudSync] = useState(false);
+  const [showUpdate, setShowUpdate] = useState(false);
+  const [settingsDefaultTab, setSettingsDefaultTab] = useState<'general' | 'security' | 'webdav'>('general');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [highlightDate, setHighlightDate] = useState<string | null>(null);
@@ -74,48 +79,60 @@ const App: React.FC = () => {
   }, []);
 
   // --- Handlers ---
-  const saveData = async (newData: Record<string, DayData>) => {
+  const saveData = useCallback(async (newData: Record<string, DayData>) => {
     setData(newData);
     await StorageService.setData(newData);
-  };
+    // 更新数据修改时间戳，用于云同步比较
+    localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
+  }, []);
 
-  const savePlans = async (newPlans: Record<string, string[]>) => {
+  const savePlans = useCallback(async (newPlans: Record<string, string[]>) => {
     setMonthlyPlans(newPlans);
     await StorageService.setPlans(newPlans);
-  };
+    // 更新数据修改时间戳，用于云同步比较
+    localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
+  }, []);
 
-  const handleDaySave = (dateKey: string, events: DayEvent[], stickers: string[]) => {
-    const newData = {
-      ...data,
-      [dateKey]: { date: dateKey, events, stickers }
-    };
-    saveData(newData);
-  };
-
-  const handlePlanUpdate = (index: number, value: string) => {
-    const monthKey = format(currentDate, 'yyyy-MM');
-    const currentMonthPlan = monthlyPlans[monthKey] || ['', '', ''];
-    const newPlan = [...currentMonthPlan];
-    newPlan[index] = value;
-    
-    savePlans({
-      ...monthlyPlans,
-      [monthKey]: newPlan
+  const handleDaySave = useCallback((dateKey: string, events: DayEvent[], stickers: string[]) => {
+    setData(prevData => {
+      const newData = {
+        ...prevData,
+        [dateKey]: { date: dateKey, events, stickers }
+      };
+      StorageService.setData(newData);
+      localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
+      return newData;
     });
-  };
+  }, []);
 
-  const openPreview = (day: Date) => {
+  const handlePlanUpdate = useCallback((index: number, value: string) => {
+    const monthKey = format(currentDate, 'yyyy-MM');
+    setMonthlyPlans(prevPlans => {
+      const currentMonthPlan = prevPlans[monthKey] || ['', '', ''];
+      const newPlan = [...currentMonthPlan];
+      newPlan[index] = value;
+      const newPlans = {
+        ...prevPlans,
+        [monthKey]: newPlan
+      };
+      StorageService.setPlans(newPlans);
+      localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
+      return newPlans;
+    });
+  }, [currentDate]);
+
+  const openPreview = useCallback((day: Date) => {
     const id = format(day, 'yyyy-MM-dd');
     setPreviewWindows((prev) => {
       const exists = prev.some(p => p.id === id);
       if (exists) return prev;
       return [...prev, { id, date: day }];
     });
-  };
+  }, []);
 
-  const closePreview = (id: string) => {
+  const closePreview = useCallback((id: string) => {
     setPreviewWindows(prev => prev.filter(p => p.id !== id));
-  };
+  }, []);
 
   const handleExport = () => {
     const exportData = {
@@ -151,22 +168,27 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
-  // --- Render Data ---
-  const days = getCalendarDays(currentDate);
-  const monthKey = format(currentDate, 'yyyy-MM');
-  const currentPlan = monthlyPlans[monthKey] || ['', '', ''];
+  // --- Render Data (useMemo 优化) ---
+  const days = useMemo(() => getCalendarDays(currentDate), [currentDate]);
+  const monthKey = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
+  const currentPlan = useMemo(() => monthlyPlans[monthKey] || ['', '', ''], [monthlyPlans, monthKey]);
   
   // Determine if we need 6 rows
   const isSixWeeks = days.length > 35;
 
   // 获取安全设置
-  const getSecuritySettings = () => {
+  const getSecuritySettings = useCallback(() => {
     const securitySettings = localStorage.getItem('calendar-diary-security');
     if (securitySettings) {
       return JSON.parse(securitySettings);
     }
     return null;
-  };
+  }, []);
+
+  // 导航回调
+  const handlePrevMonth = useCallback(() => setCurrentDate(d => subMonths(d, 1)), []);
+  const handleNextMonth = useCallback(() => setCurrentDate(d => addMonths(d, 1)), []);
+  const handleDateSelect = useCallback((date: Date) => setCurrentDate(date), []);
 
   return (
     <div className="w-full h-full min-h-0 bg-white flex flex-col overflow-hidden relative">
@@ -196,11 +218,6 @@ const App: React.FC = () => {
         ) : null;
       })()}
       
-      {/* Update Notification */}
-      <Suspense fallback={null}>
-        <UpdateNotification />
-      </Suspense>
-      
       {/* Custom Title Bar */}
       <div className="h-10 bg-gradient-to-b from-stone-50 to-stone-100 flex justify-between items-center px-4 border-b border-stone-300 select-none shrink-0 draggable">
         <div className="flex items-center gap-3 text-sm font-semibold text-stone-700">
@@ -208,6 +225,29 @@ const App: React.FC = () => {
           <span>{t('appTitle')}</span>
         </div>
         <div className="flex items-center gap-2 non-draggable">
+           <button 
+             onClick={() => {
+               const config = WebDAVService.getStoredConfig();
+               if (config) {
+                 setShowCloudSync(true);
+               } else {
+                 // 未配置 WebDAV，跳转到设置
+                 setSettingsDefaultTab('webdav');
+                 setShowSettings(true);
+               }
+             }} 
+             className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
+             title={t('cloudSync')}
+           >
+             <Cloud size={16} />
+           </button>
+           <button 
+             onClick={() => setShowUpdate(true)} 
+             className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
+             title={t('checkUpdate')}
+           >
+             <RefreshCw size={16} />
+           </button>
            <button 
              onClick={() => setShowSearch(true)} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
@@ -218,14 +258,17 @@ const App: React.FC = () => {
            <button 
              onClick={() => setShowAbout(true)} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
-             title="About"
+             title={t('about')}
            >
              <Github size={16} />
            </button>
            <button 
-             onClick={() => setShowSettings(true)} 
+             onClick={() => {
+               setSettingsDefaultTab('general');
+               setShowSettings(true);
+             }} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
-             title="Settings"
+             title={t('settings')}
            >
              <Settings size={16} />
            </button>
@@ -233,21 +276,21 @@ const App: React.FC = () => {
              <button 
                onClick={() => window.electronAPI?.window.minimize()} 
                className="p-1.5 text-stone-500 hover:bg-yellow-100 hover:text-yellow-700 rounded-md transition-all"
-               title="Minimize"
+               title={t('minimize')}
              >
                <Minus size={16} />
              </button>
              <button 
                onClick={() => window.electronAPI?.window.maximize()} 
                className="p-1.5 text-stone-500 hover:bg-green-100 hover:text-green-700 rounded-md transition-all"
-               title="Maximize/Restore"
+               title={t('maximize')}
              >
                <Square size={14} />
              </button>
              <button 
                onClick={() => window.electronAPI?.window.close()} 
                className="p-1.5 text-stone-500 hover:bg-red-100 hover:text-red-600 rounded-md transition-all"
-               title="Close"
+               title={t('close')}
              >
                <X size={16} />
              </button>
@@ -261,9 +304,9 @@ const App: React.FC = () => {
         <div className="relative z-10 flex flex-col h-full min-h-0">
             <CalendarHeader 
                 currentDate={currentDate}
-                onPrevMonth={() => setCurrentDate(subMonths(currentDate, 1))}
-                onNextMonth={() => setCurrentDate(addMonths(currentDate, 1))}
-                onDateSelect={(date) => setCurrentDate(date)}
+                onPrevMonth={handlePrevMonth}
+                onNextMonth={handleNextMonth}
+                onDateSelect={handleDateSelect}
                 monthlyPlan={currentPlan}
                 onUpdatePlan={handlePlanUpdate}
             />
@@ -317,6 +360,7 @@ const App: React.FC = () => {
               onClose={() => setShowSettings(false)} 
               onExport={handleExport}
               onImport={handleImport}
+              defaultTab={settingsDefaultTab}
           />
         </Suspense>
       )}
@@ -343,6 +387,33 @@ const App: React.FC = () => {
               }, 1000);
             }}
           />
+        </Suspense>
+      )}
+
+      {showCloudSync && (
+        <Suspense fallback={null}>
+          <CloudSyncModal 
+            onClose={() => setShowCloudSync(false)}
+            onOpenWebDAVSettings={() => {
+              setShowCloudSync(false);
+              setSettingsDefaultTab('webdav');
+              setShowSettings(true);
+            }}
+            onDataRestored={async () => {
+              // 数据恢复后重新加载
+              const savedData = await StorageService.getData();
+              const savedPlans = await StorageService.getPlans();
+              if (savedData) setData(savedData);
+              if (savedPlans) setMonthlyPlans(savedPlans);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Update Modal */}
+      {showUpdate && (
+        <Suspense fallback={null}>
+          <UpdateModal onClose={() => setShowUpdate(false)} />
         </Suspense>
       )}
 

@@ -1,22 +1,9 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs/promises');
 
 // Set app name for proper data storage path
 app.setName('CalendarDiary');
-
-// Configure auto-updater
-autoUpdater.autoDownload = false;
-autoUpdater.autoInstallOnAppQuit = true;
-
-// 配置更新日志
-autoUpdater.logger = {
-  info: (message: any) => console.log('[AutoUpdater]', message),
-  warn: (message: any) => console.warn('[AutoUpdater]', message),
-  error: (message: any) => console.error('[AutoUpdater]', message),
-  debug: (message: any) => console.debug('[AutoUpdater]', message)
-};
 
 // 数据存储路径
 const USER_DATA_PATH = app.getPath('userData');
@@ -72,19 +59,6 @@ function createWindow() {
 app.whenReady().then(async () => {
   await ensureDataFiles();
   createWindow();
-
-  // Check for updates after window is created (production only)
-  if (process.env.NODE_ENV !== 'development' && !process.env.DEBUG) {
-    console.log('[AutoUpdater] Scheduling update check in 3 seconds...');
-    setTimeout(() => {
-      console.log('[AutoUpdater] Starting update check...');
-      autoUpdater.checkForUpdates().catch(err => {
-        console.error('[AutoUpdater] Failed to check for updates:', err);
-      });
-    }, 3000);
-  } else {
-    console.log('[AutoUpdater] Update check skipped (development mode)');
-  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -186,58 +160,4 @@ ipcMain.handle('shell:openExternal', async (_event: any, url: string) => {
 // App version
 ipcMain.handle('app:getVersion', () => {
   return app.getVersion();
-});
-
-// Auto-updater events
-autoUpdater.on('checking-for-update', () => {
-  console.log('Checking for updates...');
-});
-
-autoUpdater.on('update-available', (info: any) => {
-  console.log('Update available:', info);
-  mainWindow?.webContents.send('update-available', info);
-});
-
-autoUpdater.on('update-not-available', (info: any) => {
-  console.log('Update not available:', info);
-});
-
-autoUpdater.on('error', (err: any) => {
-  console.error('Update error:', err);
-  mainWindow?.webContents.send('update-error', err);
-});
-
-autoUpdater.on('download-progress', (progressObj: any) => {
-  console.log('Download progress:', progressObj.percent);
-  mainWindow?.webContents.send('download-progress', progressObj);
-});
-
-autoUpdater.on('update-downloaded', (info: any) => {
-  console.log('Update downloaded:', info);
-  mainWindow?.webContents.send('update-downloaded', info);
-});
-
-// IPC handlers for update
-ipcMain.handle('app:checkForUpdates', async () => {
-  try {
-    const result = await autoUpdater.checkForUpdates();
-    return { success: true, updateInfo: result?.updateInfo };
-  } catch (error) {
-    console.error('Error checking for updates:', error);
-    return { success: false, error: String(error) };
-  }
-});
-
-ipcMain.handle('app:downloadUpdate', async () => {
-  try {
-    await autoUpdater.downloadUpdate();
-    return { success: true };
-  } catch (error) {
-    console.error('Error downloading update:', error);
-    return { success: false, error: String(error) };
-  }
-});
-
-ipcMain.handle('app:installUpdate', () => {
-  autoUpdater.quitAndInstall(false, true);
 });

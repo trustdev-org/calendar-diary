@@ -24,24 +24,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
   },
   
-  // 应用更新
+  // 应用信息
   app: {
-    checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
-    downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
-    installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
     getVersion: () => ipcRenderer.invoke('app:getVersion'),
-    onUpdateAvailable: (callback: (info: any) => void) => {
-      ipcRenderer.on('update-available', (_event, info) => callback(info));
-    },
-    onDownloadProgress: (callback: (progress: any) => void) => {
-      ipcRenderer.on('download-progress', (_event, progress) => callback(progress));
-    },
-    onUpdateDownloaded: (callback: (info: any) => void) => {
-      ipcRenderer.on('update-downloaded', (_event, info) => callback(info));
-    },
-    onUpdateError: (callback: (error: any) => void) => {
-      ipcRenderer.on('update-error', (_event, error) => callback(error));
-    },
   },
   
   // 平台信息
@@ -67,14 +52,7 @@ export interface ElectronAPI {
     openExternal: (url: string) => Promise<void>;
   };
   app: {
-    checkForUpdates: () => Promise<{ success: boolean; updateInfo?: any; error?: string }>; 
-    downloadUpdate: () => Promise<{ success: boolean; error?: string }>; 
-    installUpdate: () => Promise<void>; 
     getVersion: () => Promise<string>; 
-    onUpdateAvailable: (callback: (info: any) => void) => void; 
-    onDownloadProgress: (callback: (progress: any) => void) => void; 
-    onUpdateDownloaded: (callback: (info: any) => void) => void; 
-    onUpdateError: (callback: (error: any) => void) => void; 
   }; 
   platform: string;
 }

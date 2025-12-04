@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, memo, useCallback } from 'react';
 import { format, getDate, isSameMonth, isSameDay, getLunarDate, getHoliday } from '../utils/dateUtils';
 import { DayData } from '../types';
 
@@ -15,7 +15,7 @@ interface DayCellProps {
   onContextMenu?: (day: Date) => void;
 }
 
-export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClick, highlight, onContextMenu }) => {
+const DayCellComponent: React.FC<DayCellProps> = ({ day, currentDate, data, onClick, highlight, onContextMenu }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [maxEllipsisCount, setMaxEllipsisCount] = useState(3);
   const eventsListRef = useRef<HTMLDivElement>(null);
@@ -49,6 +49,18 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
     return () => ro.disconnect();
   }, [events.length]);
 
+  // 优化事件处理
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
+  const handleClick = useCallback(() => {
+    if (isCurrentMonth) onClick();
+  }, [isCurrentMonth, onClick]);
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    if (!isCurrentMonth) return;
+    e.preventDefault();
+    onContextMenu?.(day);
+  }, [isCurrentMonth, onContextMenu, day]);
+
   return (
     <div 
       className={`
@@ -61,16 +73,10 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
       style={{
         animation: highlight ? 'pulse 0.5s ease-in-out 2' : undefined
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={isCurrentMonth ? onClick : undefined}
-      onContextMenu={(e) => {
-        if (!isCurrentMonth) return;
-        e.preventDefault();
-        if (onContextMenu) {
-          onContextMenu(day);
-        }
-      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+      onContextMenu={handleContextMenu}
     >
       {/* Date Header */}
       <div className="flex justify-between items-start p-1.5 shrink-0 relative">
@@ -125,3 +131,16 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
     </div>
   );
 };
+
+// 使用 React.memo 包装，深比较 data 对象
+export const DayCell = memo(DayCellComponent, (prevProps, nextProps) => {
+  // 自定义比较逻辑，避免不必要的重渲染
+  return (
+    prevProps.day.getTime() === nextProps.day.getTime() &&
+    prevProps.currentDate.getTime() === nextProps.currentDate.getTime() &&
+    prevProps.highlight === nextProps.highlight &&
+    prevProps.data?.events?.length === nextProps.data?.events?.length &&
+    prevProps.data?.stickers?.length === nextProps.data?.stickers?.length &&
+    JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+  );
+});
