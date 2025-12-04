@@ -149,7 +149,20 @@ export const translations = {
     cloudRestoreDirect: "直接恢复",
     cloudDeleteConfirmTitle: "确认删除",
     cloudDeleteConfirmMessage: "确定要删除该云端备份吗？此操作不可恢复。",
-    cloudDeleteConfirm: "确认删除"
+    cloudDeleteConfirm: "确认删除",
+    // 检查更新
+    checkUpdate: "检查更新",
+    currentVersion: "当前版本",
+    latestVersion: "最新版本",
+    unknown: "未知",
+    checkingUpdate: "正在检查更新...",
+    alreadyLatest: "当前已是最新版本",
+    newVersionAvailable: "发现新版本",
+    publishedAt: "发布时间",
+    viewRelease: "查看发布",
+    updateCheckFailed: "检查更新失败",
+    checkLatestVersion: "检查最新版本",
+    openReleasePage: "打开软件发布页"
   },
   'zh-TW': {
     appTitle: "日曆日記",
@@ -300,7 +313,20 @@ export const translations = {
     cloudRestoreDirect: "直接恢復",
     cloudDeleteConfirmTitle: "確認刪除",
     cloudDeleteConfirmMessage: "確定要刪除該雲端備份嗎？此操作不可恢復。",
-    cloudDeleteConfirm: "確認刪除"
+    cloudDeleteConfirm: "確認刪除",
+    // 檢查更新
+    checkUpdate: "檢查更新",
+    currentVersion: "目前版本",
+    latestVersion: "最新版本",
+    unknown: "未知",
+    checkingUpdate: "正在檢查更新...",
+    alreadyLatest: "目前已是最新版本",
+    newVersionAvailable: "發現新版本",
+    publishedAt: "發佈時間",
+    viewRelease: "查看發佈",
+    updateCheckFailed: "檢查更新失敗",
+    checkLatestVersion: "檢查最新版本",
+    openReleasePage: "打開軟體發佈頁"
   },
   'en': {
     appTitle: "Calendar Diary",
@@ -451,7 +477,20 @@ export const translations = {
     cloudRestoreDirect: "Restore directly",
     cloudDeleteConfirmTitle: "Confirm Delete",
     cloudDeleteConfirmMessage: "Delete this cloud backup? This cannot be undone.",
-    cloudDeleteConfirm: "Confirm Delete"
+    cloudDeleteConfirm: "Confirm Delete",
+    // Check Update
+    checkUpdate: "Check for Updates",
+    currentVersion: "Current Version",
+    latestVersion: "Latest Version",
+    unknown: "Unknown",
+    checkingUpdate: "Checking for updates...",
+    alreadyLatest: "You have the latest version",
+    newVersionAvailable: "New version available",
+    publishedAt: "Published",
+    viewRelease: "View Release",
+    updateCheckFailed: "Update check failed",
+    checkLatestVersion: "Check Latest Version",
+    openReleasePage: "Open Release Page"
   },
   'ja': {
     appTitle: "カレンダー日記",
@@ -602,7 +641,20 @@ export const translations = {
     cloudRestoreDirect: "直接復元",
     cloudDeleteConfirmTitle: "削除の確認",
     cloudDeleteConfirmMessage: "このクラウドバックアップを削除しますか？この操作は取り消せません。",
-    cloudDeleteConfirm: "削除を確認"
+    cloudDeleteConfirm: "削除を確認",
+    // アップデート確認
+    checkUpdate: "アップデート確認",
+    currentVersion: "現在のバージョン",
+    latestVersion: "最新バージョン",
+    unknown: "不明",
+    checkingUpdate: "アップデートを確認中...",
+    alreadyLatest: "最新バージョンです",
+    newVersionAvailable: "新しいバージョンがあります",
+    publishedAt: "公開日",
+    viewRelease: "リリースを見る",
+    updateCheckFailed: "アップデート確認に失敗",
+    checkLatestVersion: "最新バージョンを確認",
+    openReleasePage: "リリースページを開く"
   },
   'ko': {
     appTitle: "캘린더 일기",
@@ -753,7 +805,20 @@ export const translations = {
     cloudRestoreDirect: "바로 복원",
     cloudDeleteConfirmTitle: "삭제 확인",
     cloudDeleteConfirmMessage: "이 클라우드 백업을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
-    cloudDeleteConfirm: "삭제 확인"
+    cloudDeleteConfirm: "삭제 확인",
+    // 업데이트 확인
+    checkUpdate: "업데이트 확인",
+    currentVersion: "현재 버전",
+    latestVersion: "최신 버전",
+    unknown: "알 수 없음",
+    checkingUpdate: "업데이트 확인 중...",
+    alreadyLatest: "최신 버전입니다",
+    newVersionAvailable: "새 버전이 있습니다",
+    publishedAt: "게시일",
+    viewRelease: "릴리스 보기",
+    updateCheckFailed: "업데이트 확인 실패",
+    checkLatestVersion: "최신 버전 확인",
+    openReleasePage: "릴리스 페이지 열기"
   },
   'ru': {
     appTitle: "Календарь-дневник",
@@ -904,7 +969,20 @@ export const translations = {
     cloudRestoreDirect: "Восстановить напрямую",
     cloudDeleteConfirmTitle: "Подтвердите удаление",
     cloudDeleteConfirmMessage: "Удалить этот облачный бэкап? Это действие необратимо.",
-    cloudDeleteConfirm: "Подтвердить удаление"
+    cloudDeleteConfirm: "Подтвердить удаление",
+    // Проверка обновлений
+    checkUpdate: "Проверка обновлений",
+    currentVersion: "Текущая версия",
+    latestVersion: "Последняя версия",
+    unknown: "Неизвестно",
+    checkingUpdate: "Проверка обновлений...",
+    alreadyLatest: "У вас последняя версия",
+    newVersionAvailable: "Доступна новая версия",
+    publishedAt: "Опубликовано",
+    viewRelease: "Посмотреть релиз",
+    updateCheckFailed: "Ошибка проверки обновлений",
+    checkLatestVersion: "Проверить последнюю версию",
+    openReleasePage: "Открыть страницу релизов"
   }
 };
 
