@@ -9,9 +9,11 @@ const AboutModal = React.lazy(() => import('./components/AboutModal').then(m => 
 const UpdateNotification = React.lazy(() => import('./components/UpdateNotification').then(m => ({ default: m.UpdateNotification })));
 const AuthModal = React.lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 const SearchModal = React.lazy(() => import('./components/SearchModal').then(m => ({ default: m.SearchModal })));
+const CloudSyncModal = React.lazy(() => import('./components/CloudSyncModal').then(m => ({ default: m.CloudSyncModal })));
 import { DayData, WEEK_DAYS, DayEvent } from './types';
 import { StorageService } from './services/storageService';
-import { Settings, Minus, Square, X, Github, Search } from 'lucide-react';
+import { WebDAVService } from './services/webdavService';
+import { Settings, Minus, Square, X, Github, Search, Cloud } from 'lucide-react';
 import { t, getWeekDay } from './utils/i18n';
 
 const App: React.FC = () => {
@@ -25,6 +27,8 @@ const App: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCloudSync, setShowCloudSync] = useState(false);
+  const [settingsDefaultTab, setSettingsDefaultTab] = useState<'general' | 'security' | 'webdav'>('general');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [highlightDate, setHighlightDate] = useState<string | null>(null);
@@ -77,11 +81,15 @@ const App: React.FC = () => {
   const saveData = async (newData: Record<string, DayData>) => {
     setData(newData);
     await StorageService.setData(newData);
+    // 更新数据修改时间戳，用于云同步比较
+    localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
   };
 
   const savePlans = async (newPlans: Record<string, string[]>) => {
     setMonthlyPlans(newPlans);
     await StorageService.setPlans(newPlans);
+    // 更新数据修改时间戳，用于云同步比较
+    localStorage.setItem('calendar-diary-data-updated-at', new Date().toISOString());
   };
 
   const handleDaySave = (dateKey: string, events: DayEvent[], stickers: string[]) => {
@@ -209,6 +217,22 @@ const App: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 non-draggable">
            <button 
+             onClick={() => {
+               const config = WebDAVService.getStoredConfig();
+               if (config) {
+                 setShowCloudSync(true);
+               } else {
+                 // 未配置 WebDAV，跳转到设置
+                 setSettingsDefaultTab('webdav');
+                 setShowSettings(true);
+               }
+             }} 
+             className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
+             title={t('cloudSync')}
+           >
+             <Cloud size={16} />
+           </button>
+           <button 
              onClick={() => setShowSearch(true)} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
              title={`${t('searchDiary')} (${navigator.platform.includes('Mac') ? '⌘F' : 'Ctrl+F'})`}
@@ -223,7 +247,10 @@ const App: React.FC = () => {
              <Github size={16} />
            </button>
            <button 
-             onClick={() => setShowSettings(true)} 
+             onClick={() => {
+               setSettingsDefaultTab('general');
+               setShowSettings(true);
+             }} 
              className="p-1.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700 rounded-md transition-all"
              title="Settings"
            >
@@ -317,6 +344,7 @@ const App: React.FC = () => {
               onClose={() => setShowSettings(false)} 
               onExport={handleExport}
               onImport={handleImport}
+              defaultTab={settingsDefaultTab}
           />
         </Suspense>
       )}
@@ -341,6 +369,26 @@ const App: React.FC = () => {
               setTimeout(() => {
                 setHighlightDate(null);
               }, 1000);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {showCloudSync && (
+        <Suspense fallback={null}>
+          <CloudSyncModal 
+            onClose={() => setShowCloudSync(false)}
+            onOpenWebDAVSettings={() => {
+              setShowCloudSync(false);
+              setSettingsDefaultTab('webdav');
+              setShowSettings(true);
+            }}
+            onDataRestored={async () => {
+              // 数据恢复后重新加载
+              const savedData = await StorageService.getData();
+              const savedPlans = await StorageService.getPlans();
+              if (savedData) setData(savedData);
+              if (savedPlans) setMonthlyPlans(savedPlans);
             }}
           />
         </Suspense>

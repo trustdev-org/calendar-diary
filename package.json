@@ -31,7 +31,8 @@
     "otpauth": "^9.4.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "webdav": "^5.8.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Folder, Download, Upload, HardDrive, Globe, Lock, KeyRound, Smartphone, Copy, Check } from 'lucide-react';
+import { X, Folder, Download, Upload, HardDrive, Globe, Lock, KeyRound, Smartphone, Copy, Check, Cloud, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { t, setLanguage, getCurrentLanguage, languageNames, type Language } from '../utils/i18n';
 import * as OTPAuth from 'otpauth';
 import QRCode from 'qrcode';
 import { getAppVersion } from '../utils/version';
+import { webdavService, type WebDAVConfig } from '../services/webdavService';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -13,7 +14,7 @@ interface SettingsModalProps {
   onDisplaySettingsChange?: (mode: 'ellipsis' | 'scroll') => void;
 }
 
-type TabType = 'general' | 'security';
+type TabType = 'general' | 'security' | 'cloud';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport, onImport, onDisplaySettingsChange }) => {
   const [dataPath, setDataPath] = useState('LocalStorage (Browser)');
@@ -37,6 +38,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
   const [isTotpVerified, setIsTotpVerified] = useState(false);
   const [savedPin, setSavedPin] = useState(false);
   const [savedTotp, setSavedTotp] = useState(false);
+
+  // WebDAV settings
+  const [webdavUrl, setWebdavUrl] = useState('');
+  const [webdavPath, setWebdavPath] = useState('/calendar-diary');
+  const [webdavUsername, setWebdavUsername] = useState('');
+  const [webdavPassword, setWebdavPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [webdavTesting, setWebdavTesting] = useState(false);
+  const [webdavTestResult, setWebdavTestResult] = useState<'success' | 'error' | null>(null);
+  const [webdavTestMessage, setWebdavTestMessage] = useState('');
 
   const generateQRCode = async (secret: string) => {
     try {
@@ -144,6 +155,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
         console.error('Failed to load security settings:', error);
       }
     }
+
+    // 加载 WebDAV 设置
+    const savedWebdav = localStorage.getItem('calendar-diary-webdav');
+    if (savedWebdav) {
+      try {
+        const webdav = JSON.parse(savedWebdav) as WebDAVConfig;
+        setWebdavUrl(webdav.serverUrl || '');
+        setWebdavPath(webdav.rootPath || '/calendar-diary');
+        setWebdavUsername(webdav.username || '');
+        setWebdavPassword(webdav.password || '');
+      } catch (error) {
+        console.error('Failed to load WebDAV settings:', error);
+      }
+    }
   }, []);
 
   const handleLanguageChange = (lang: Language) => {
@@ -161,6 +186,55 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
         console.error('Failed to open folder:', error);
       }
     }
+  };
+
+  const handleTestWebdav = async () => {
+    if (!webdavUrl) {
+      setWebdavTestResult('error');
+      setWebdavTestMessage(t('webdavUrlRequired'));
+      return;
+    }
+
+    setWebdavTesting(true);
+    setWebdavTestResult(null);
+    setWebdavTestMessage('');
+
+    try {
+      const config: WebDAVConfig = {
+        serverUrl: webdavUrl,
+        rootPath: webdavPath || '/calendar-diary',
+        username: webdavUsername,
+        password: webdavPassword
+      };
+
+      webdavService.connect(config);
+      const result = await webdavService.testConnection();
+      
+      if (result.success) {
+        setWebdavTestResult('success');
+        setWebdavTestMessage(t('webdavTestSuccess'));
+      } else {
+        setWebdavTestResult('error');
+        setWebdavTestMessage(result.error || t('webdavTestFailed'));
+      }
+    } catch (error) {
+      setWebdavTestResult('error');
+      setWebdavTestMessage(error instanceof Error ? error.message : t('webdavTestFailed'));
+    } finally {
+      setWebdavTesting(false);
+    }
+  };
+
+  const handleSaveWebdav = () => {
+    const config: WebDAVConfig = {
+      serverUrl: webdavUrl,
+      rootPath: webdavPath || '/calendar-diary',
+      username: webdavUsername,
+      password: webdavPassword
+    };
+    localStorage.setItem('calendar-diary-webdav', JSON.stringify(config));
+    webdavService.connect(config);
+    onClose();
   };
 
 
@@ -293,6 +367,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
           >
             <Lock size={16} />
             {t('securityPrivacy')}
+          </button>
+          <button
+            onClick={() => setActiveTab('cloud')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all ${
+              activeTab === 'cloud'
+                ? 'text-stone-800 border-b-2 border-stone-800 bg-white'
+                : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100'
+            }`}
+          >
+            <Cloud size={16} />
+            {t('cloudSync')}
           </button>
         </div>
 
@@ -639,6 +724,112 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
             </section>
               </>
             )}
+
+            {activeTab === 'cloud' && (
+              <>
+            {/* WebDAV Configuration Section */}
+            <section>
+                <h3 className="text-sm font-bold text-stone-700 mb-3 flex items-center gap-2">
+                    <Cloud size={16} /> {t('webdavConfig')}
+                </h3>
+                <div className="bg-stone-50 p-4 rounded-md border border-stone-200 space-y-4">
+                    <p className="text-xs text-stone-500">{t('webdavConfigDesc')}</p>
+                    
+                    {/* Server URL */}
+                    <div>
+                        <label className="block text-xs font-medium text-stone-600 mb-1.5">{t('webdavServerUrl')}</label>
+                        <input
+                            type="text"
+                            value={webdavUrl}
+                            onChange={(e) => {
+                                setWebdavUrl(e.target.value);
+                                setWebdavTestResult(null);
+                            }}
+                            placeholder="https://your-server.com/webdav"
+                            className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                        />
+                    </div>
+
+                    {/* Root Path */}
+                    <div>
+                        <label className="block text-xs font-medium text-stone-600 mb-1.5">{t('webdavRootPath')}</label>
+                        <input
+                            type="text"
+                            value={webdavPath}
+                            onChange={(e) => {
+                                setWebdavPath(e.target.value);
+                                setWebdavTestResult(null);
+                            }}
+                            placeholder="/calendar-diary"
+                            className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                        />
+                        <p className="text-[10px] text-stone-400 mt-1">{t('webdavRootPathHint')}</p>
+                    </div>
+
+                    {/* Username */}
+                    <div>
+                        <label className="block text-xs font-medium text-stone-600 mb-1.5">{t('webdavUsername')}</label>
+                        <input
+                            type="text"
+                            value={webdavUsername}
+                            onChange={(e) => {
+                                setWebdavUsername(e.target.value);
+                                setWebdavTestResult(null);
+                            }}
+                            placeholder={t('webdavUsernamePlaceholder')}
+                            className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                        />
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                        <label className="block text-xs font-medium text-stone-600 mb-1.5">{t('webdavPassword')}</label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                value={webdavPassword}
+                                onChange={(e) => {
+                                    setWebdavPassword(e.target.value);
+                                    setWebdavTestResult(null);
+                                }}
+                                placeholder={t('webdavPasswordPlaceholder')}
+                                className="w-full px-3 py-2 pr-10 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Test Connection Button */}
+                    <div className="pt-2 border-t border-stone-200">
+                        <button
+                            onClick={handleTestWebdav}
+                            disabled={webdavTesting || !webdavUrl}
+                            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-stone-300 rounded-md text-sm font-medium hover:bg-stone-50 disabled:bg-stone-100 disabled:text-stone-400 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <RefreshCw size={14} className={webdavTesting ? 'animate-spin' : ''} />
+                            {webdavTesting ? t('webdavTesting') : t('webdavTestConnection')}
+                        </button>
+                        
+                        {webdavTestResult && (
+                            <div className={`mt-2 p-2 rounded text-xs ${
+                                webdavTestResult === 'success' 
+                                    ? 'bg-green-50 text-green-700 border border-green-200' 
+                                    : 'bg-red-50 text-red-700 border border-red-200'
+                            }`}>
+                                {webdavTestResult === 'success' ? '✓' : '✗'} {webdavTestMessage}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
+              </>
+            )}
         </div>
 
         <div className="bg-stone-100 px-6 py-3 border-t border-stone-200 flex justify-end gap-2">
@@ -652,6 +843,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onExport,
              onClick={() => {
                if (activeTab === 'security') {
                  handleSaveSecurity();
+               } else if (activeTab === 'cloud') {
+                 handleSaveWebdav();
                } else if (activeTab === 'general') {
                  onClose();
                }
