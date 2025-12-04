@@ -82,14 +82,13 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
             `}>
             {getDate(day)}
             </span>
-            <div className="flex items-center gap-1 mt-0.5 w-full">
-              <div className="flex items-center gap-1 min-w-0">
-                <span className="text-[8px] text-stone-400 font-serif transform scale-90 origin-left">{lunar}</span>
+            <div className="flex items-center gap-1 mt-0.5 w-full overflow-hidden">
+              <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+                <span className="text-[8px] text-stone-400 font-serif transform scale-90 origin-left truncate">{lunar}</span>
                 {holiday && (
-                  <span className="text-[8px] text-ink-red font-medium">{holiday}</span>
+                  <span className="text-[8px] text-ink-red font-medium truncate">{holiday}</span>
                 )}
               </div>
-              <div className="flex-1"></div>
               {events.length > maxEllipsisCount && (
                 <span className="text-[8px] text-stone-400 whitespace-nowrap shrink-0">
                   {t('entriesCount').replace('{count}', String(events.length))}
@@ -98,11 +97,13 @@ export const DayCell: React.FC<DayCellProps> = ({ day, currentDate, data, onClic
             </div>
         </div>
         {/* Decorative Stickers (Top Right) */}
-        <div className="absolute top-1 right-1 flex flex-wrap justify-end gap-0.5 max-w-[50%] shrink-0 pointer-events-none">
-          {stickers.slice(0, 3).map((s, i) => (
-            <span key={i} className="text-[10px] leading-none">{s}</span>
-          ))}
-        </div>
+        {stickers.length > 0 && (
+          <div className="absolute top-1 right-1 flex flex-wrap justify-end gap-0.5 max-w-[40%] shrink-0 pointer-events-none">
+            {stickers.slice(0, 3).map((s, i) => (
+              <span key={i} className="text-[10px] leading-none">{s}</span>
+            ))}
+          </div>
+        )}
       </div>
       {/* Events List */}
       <div

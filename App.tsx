@@ -351,8 +351,17 @@ const App: React.FC = () => {
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+          onClick={(e) => {
+            // 点击遮罩层关闭所有预览窗口
+            if (e.target === e.currentTarget) {
+              setPreviewWindows([]);
+            }
+          }}
         >
-          <div className="max-h-[85vh] overflow-y-auto overflow-x-hidden p-6">
+          <div 
+            className="max-h-[85vh] overflow-y-auto overflow-x-hidden p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex flex-wrap gap-6 justify-center">
               {previewWindows.map((p) => (
                 <DayPreview
