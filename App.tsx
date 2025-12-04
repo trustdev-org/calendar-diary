@@ -6,7 +6,6 @@ import { DayEditor } from './components/DayEditor';
 import { DayPreview } from './components/DayPreview';
 const SettingsModal = React.lazy(() => import('./components/SettingsModal').then(m => ({ default: m.SettingsModal })));
 const AboutModal = React.lazy(() => import('./components/AboutModal').then(m => ({ default: m.AboutModal })));
-const UpdateNotification = React.lazy(() => import('./components/UpdateNotification').then(m => ({ default: m.UpdateNotification })));
 const AuthModal = React.lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 const SearchModal = React.lazy(() => import('./components/SearchModal').then(m => ({ default: m.SearchModal })));
 const CloudSyncModal = React.lazy(() => import('./components/CloudSyncModal').then(m => ({ default: m.CloudSyncModal })));
@@ -203,11 +202,6 @@ const App: React.FC = () => {
           </Suspense>
         ) : null;
       })()}
-      
-      {/* Update Notification */}
-      <Suspense fallback={null}>
-        <UpdateNotification />
-      </Suspense>
       
       {/* Custom Title Bar */}
       <div className="h-10 bg-gradient-to-b from-stone-50 to-stone-100 flex justify-between items-center px-4 border-b border-stone-300 select-none shrink-0 draggable">

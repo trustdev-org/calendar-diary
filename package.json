@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
-    "electron-updater": "^6.1.7",
     "lucide-react": "^0.554.0",
     "lunar-javascript": "^1.7.7",
     "otpauth": "^9.4.1",
