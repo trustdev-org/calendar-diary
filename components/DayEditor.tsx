@@ -128,13 +128,14 @@ export const DayEditor: React.FC<DayEditorProps> = ({ date, initialData, onClose
                     value={event.rawText}
                     onChange={(e) => handleEventChange(event.id, e.target.value)}
                     placeholder={t('writeTask')}
-                    className="auto-resize-textarea flex-1 bg-stone-50 border border-transparent focus:border-stone-300 focus:bg-white rounded px-2 py-1.5 text-sm outline-none transition-all resize-none min-h-[36px] overflow-hidden"
+                    className="auto-resize-textarea flex-1 bg-stone-50 border border-transparent focus:border-stone-300 focus:bg-white rounded px-2 py-1.5 text-sm outline-none transition-all resize-none min-h-[36px] max-h-[150px] overflow-y-auto"
                     autoFocus={index === events.length - 1 && event.rawText === ''}
                     rows={1}
                     onInput={(e) => {
                       const target = e.target as HTMLTextAreaElement;
                       target.style.height = 'auto';
-                      target.style.height = target.scrollHeight + 'px';
+                      const newHeight = Math.min(target.scrollHeight, 150);
+                      target.style.height = newHeight + 'px';
                     }}
                   />
                   <div className="relative">
